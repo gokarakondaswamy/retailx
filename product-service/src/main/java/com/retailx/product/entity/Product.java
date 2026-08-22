@@ -13,9 +13,6 @@ public class Product {
    private String name;
    @Column(length = 4000)
    private String description;
-   @Column(nullable = false)
-   private BigDecimal price;
-   private  int quanity;
    @ManyToMany
    @JoinTable(
            name="product_category",
