@@ -24,10 +24,22 @@
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
     </properties>
+    <dependencyManagement>
+        <dependencies>
+
+            <dependency>
+                <groupId>com.retailx</groupId>
+                <artifactId>common-library</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+        </dependencies>
+    </dependencyManagement>
 
     <modules>
         <module>common-library</module>
         <module>product-service</module>
+        <module>inventory-service</module>
     </modules>
 
 </project>
