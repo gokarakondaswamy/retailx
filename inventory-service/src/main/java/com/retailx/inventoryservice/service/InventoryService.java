@@ -1,8 +1,10 @@
-package com.retailx.inventoryservice.Service;
+package com.retailx.inventoryservice.service;
 
 import com.retailx.inventoryservice.constants.InventoryConstants;
 import com.retailx.inventoryservice.dto.ReserveInventoryRequest;
 import com.retailx.inventoryservice.entity.Inventory;
+import com.retailx.inventoryservice.entity.InventoryReservation;
+import com.retailx.inventoryservice.enums.ReservationStatus;
 import com.retailx.inventoryservice.exception.DuplicateReservationException;
 import com.retailx.inventoryservice.exception.InsufficientStockException;
 import com.retailx.inventoryservice.exception.InventoryNotFoundException;
@@ -10,6 +12,8 @@ import com.retailx.inventoryservice.repository.InventoryRepository;
 import com.retailx.inventoryservice.repository.InventoryReservationRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
 
 @Service
 public class InventoryService {
@@ -67,6 +71,22 @@ public class InventoryService {
         inventory.setReservedQuantity(
                 inventory.getReservedQuantity() + request.getQuantity()
         );
+
+        InventoryReservation inventoryReservation= new InventoryReservation();
+        inventoryReservation.setInventory(inventory);
+        inventoryReservation.setOfferId(request.getOfferId());
+        inventoryReservation.setOrderId(request.getOrderId());
+        inventoryReservation.setQuantity(request.getQuantity());
+        inventoryReservation.setStatus(ReservationStatus.RESERVED);
+        LocalDateTime createdAt = LocalDateTime.now();
+        inventoryReservation.setCreatedAt(createdAt);
+        inventoryReservation.setExpiresAt(
+                createdAt.plusMinutes(
+                        InventoryConstants.RESERVATION_EXPIRY_MINUTES
+                )
+        );
+        inventoryReservationRepository.save(inventoryReservation);
+
     }
 
 }

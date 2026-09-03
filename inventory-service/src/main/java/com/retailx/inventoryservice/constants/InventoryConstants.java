@@ -11,4 +11,5 @@ public class InventoryConstants {
             "Reservation already exists for orderId: %d and offerId: %d";
     public static final String INSUFFICIENT_STOCK =
             "Insufficient stock for offerId: %d. Requested: %d, Available: %d";
+    public static final long RESERVATION_EXPIRY_MINUTES = 15;
 }

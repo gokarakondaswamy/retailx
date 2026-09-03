@@ -20,17 +20,39 @@ public class InventoryReservation {
     @Column(name = "order_id", nullable = false)
     private Long orderId;
 
-    private  Integer quantity;
+    @Column(nullable = false)
+    private Integer quantity;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private ReservationStatus status;
 
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public Long getOfferId() {
+        return offerId;
+    }
+
+    public void setOfferId(Long offerId) {
+        this.offerId = offerId;
+    }
+
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @Column(nullable = false)
     private LocalDateTime expiresAt;
 
     @Column(name = "offer_id", nullable = false)
     private Long offerId;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "inventory_id", nullable = false)
     private Inventory inventory;
 
