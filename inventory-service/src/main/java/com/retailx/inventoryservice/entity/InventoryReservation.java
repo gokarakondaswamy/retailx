@@ -10,6 +10,10 @@ import java.time.LocalDateTime;
         uniqueConstraints = @UniqueConstraint(
                 name = "uk_order_offer",
                 columnNames = {"order_id", "offer_id"}
+        ),
+        indexes = @Index(
+                name = "idx_reservation_status_expires_at",
+                columnList = "status, expires_at"
         )
 )
 public class InventoryReservation {
@@ -24,8 +28,21 @@ public class InventoryReservation {
     private Integer quantity;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name="status",nullable = false)
     private ReservationStatus status;
+
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @Column(name ="expires_at",nullable = false)
+    private LocalDateTime expiresAt;
+
+    @Column(name = "offer_id", nullable = false)
+    private Long offerId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "inventory_id", nullable = false)
+    private Inventory inventory;
 
     public LocalDateTime getCreatedAt() {
         return createdAt;
@@ -42,20 +59,6 @@ public class InventoryReservation {
     public void setOfferId(Long offerId) {
         this.offerId = offerId;
     }
-
-    @Column(nullable = false, updatable = false)
-    private LocalDateTime createdAt;
-
-    @Column(nullable = false)
-    private LocalDateTime expiresAt;
-
-    @Column(name = "offer_id", nullable = false)
-    private Long offerId;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "inventory_id", nullable = false)
-    private Inventory inventory;
-
     public Long getId() {
         return id;
     }

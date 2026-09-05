@@ -25,5 +25,8 @@ public class InventoryConstants {
 
     public static final String INCONSISTENT_RESERVED_QUANTITY =
             "Inventory inconsistency for offerId: %d. Reserved quantity: %d, reservation quantity: %d";
+
     public static final long RESERVATION_EXPIRY_MINUTES = 15;
+
+    public static final int RESERVATION_EXPIRY_BATCH_SIZE = 100;
 }

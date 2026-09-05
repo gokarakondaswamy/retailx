@@ -175,4 +175,59 @@ public class InventoryService {
 
     }
 
+
+    @Transactional
+    public void expireReservation(Long orderId,Long offerId){
+
+        Inventory inventory = inventoryRepository
+                .findByOfferIdForUpdate(offerId)
+                .orElseThrow(
+                        () -> new InventoryNotFoundException(
+                                String.format(
+                                        InventoryConstants.INVENTORY_NOT_FOUND,
+                                        offerId
+                                )
+                        )
+                );
+
+        InventoryReservation inventoryReservation=inventoryReservationRepository
+                .findByOrderIdAndOfferId(orderId,offerId)
+                .orElseThrow(
+                        () ->
+                                new ReservationNotFoundException(
+                                        String.format(
+                                                InventoryConstants.RESERVATION_NOT_FOUND,
+                                                orderId,
+                                                offerId
+                                        )
+                                )
+                );
+        ReservationStatus status = inventoryReservation.getStatus();
+
+        if( status != ReservationStatus.RESERVED  ){
+            return;
+
+        }
+
+        LocalDateTime presentTime = LocalDateTime.now();
+        if (inventoryReservation.getExpiresAt().isAfter(presentTime)) {
+            return;
+        }
+        if (inventory.getReservedQuantity()
+                < inventoryReservation.getQuantity()) {
+
+            throw new InventoryConsistencyException(
+                    String.format(
+                            InventoryConstants.INCONSISTENT_RESERVED_QUANTITY,
+                            offerId,
+                            inventory.getReservedQuantity(),
+                            inventoryReservation.getQuantity()
+                    )
+            );
+        }
+        inventory.setReservedQuantity(inventory.getReservedQuantity()-inventoryReservation.getQuantity());
+        inventoryReservation.setStatus(ReservationStatus.EXPIRED);
+
+    }
+
 }
