@@ -26,7 +26,29 @@ public class InventoryConstants {
     public static final String INCONSISTENT_RESERVED_QUANTITY =
             "Inventory inconsistency for offerId: %d. Reserved quantity: %d, reservation quantity: %d";
 
+    public static final String RESERVATION_CONFIRMED =
+            "Reservation confirmed for orderId: %d and offerId: %d";
+
+    public static final String RESERVATION_ALREADY_CONFIRMED =
+            "Reservation already confirmed for orderId: %d and offerId: %d";
+
+    public static final String RELEASED_RESERVATION_CANNOT_BE_CONFIRMED =
+            "Released reservation cannot be confirmed for orderId: %d and offerId: %d";
+
+    public static final String EXPIRED_RESERVATION_CANNOT_BE_CONFIRMED =
+            "Expired reservation cannot be confirmed for orderId: %d and offerId: %d";
+
+    public static final String INCONSISTENT_CONFIRMATION_QUANTITY =
+            "Inventory inconsistency for offerId: %d. Total: %d, Reserved: %d, Reservation: %d";
+
+    public static final String RESERVATION_CREATED =
+            "Inventory reserved for orderId: %d and offerId: %d";
+
+    public static final String INTERNAL_SERVER_ERROR =
+            "An unexpected internal server error occurred";
+
     public static final long RESERVATION_EXPIRY_MINUTES = 15;
 
     public static final int RESERVATION_EXPIRY_BATCH_SIZE = 100;
+
 }

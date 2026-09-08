@@ -24,7 +24,7 @@ public class InventoryService {
     }
 
     @Transactional
-    public void reserveInventory(ReserveInventoryRequest request) {
+    public InventoryReservationResponse  reserveInventory(ReserveInventoryRequest request) {
 
         Inventory inventory = inventoryRepository
                 .findByOfferIdForUpdate(request.getOfferId())
@@ -84,7 +84,12 @@ public class InventoryService {
                         InventoryConstants.RESERVATION_EXPIRY_MINUTES
                 )
         );
-        inventoryReservationRepository.save(inventoryReservation);
+       InventoryReservation savedReservation = inventoryReservationRepository.save(inventoryReservation);
+        return new InventoryReservationResponse(
+                   savedReservation.getOrderId(),
+                   savedReservation.getOfferId(),
+                  savedReservation.getStatus()
+        );
 
     }
 
@@ -117,10 +122,7 @@ public class InventoryService {
             InventoryReservationResponse response= new InventoryReservationResponse(
                     inventoryReservation.getOrderId(),
                     inventoryReservation.getOfferId(),
-                    inventoryReservation.getStatus(),
-                    String.format(InventoryConstants.RESERVATION_ALREADY_RELEASED,
-                            orderId,
-                            offerId)
+                    inventoryReservation.getStatus()
             );
             return response;
 
@@ -130,10 +132,7 @@ public class InventoryService {
             InventoryReservationResponse response= new InventoryReservationResponse(
                     inventoryReservation.getOrderId(),
                     inventoryReservation.getOfferId(),
-                    inventoryReservation.getStatus(),
-                    String.format(InventoryConstants.RESERVATION_EXPIRED,
-                            orderId,
-                            offerId)
+                    inventoryReservation.getStatus()
             );
             return response;
 
@@ -166,10 +165,7 @@ public class InventoryService {
         InventoryReservationResponse response= new InventoryReservationResponse(
                 inventoryReservation.getOrderId(),
                 inventoryReservation.getOfferId(),
-                inventoryReservation.getStatus(),
-                String.format(InventoryConstants.RESERVATION_RELEASED,
-                        orderId,
-                        offerId)
+                inventoryReservation.getStatus()
         );
         return response;
 
@@ -227,6 +223,107 @@ public class InventoryService {
         }
         inventory.setReservedQuantity(inventory.getReservedQuantity()-inventoryReservation.getQuantity());
         inventoryReservation.setStatus(ReservationStatus.EXPIRED);
+
+    }
+    @Transactional
+    public InventoryReservationResponse confirmReservation(Long orderId, Long offerId){
+        Inventory inventory = inventoryRepository
+                .findByOfferIdForUpdate(offerId)
+                .orElseThrow(
+                        () -> new InventoryNotFoundException(
+                                String.format(
+                                        InventoryConstants.INVENTORY_NOT_FOUND,
+                                        offerId
+                                )
+                        )
+                );
+
+        InventoryReservation inventoryReservation=inventoryReservationRepository
+                .findByOrderIdAndOfferId(orderId,offerId)
+                .orElseThrow(
+                        () ->
+                                new ReservationNotFoundException(
+                                        String.format(
+                                                InventoryConstants.RESERVATION_NOT_FOUND,
+                                                orderId,
+                                                offerId
+                                        )
+                                )
+                );
+
+        if(inventoryReservation.getStatus() == ReservationStatus.CONFIRMED){
+            InventoryReservationResponse response= new InventoryReservationResponse(orderId,
+                    offerId,
+                    ReservationStatus.CONFIRMED
+                    );
+
+            return response;
+
+
+        }
+
+        if(inventoryReservation.getStatus() == ReservationStatus.RELEASED){
+            throw  new InvalidReservationStateException(
+                   String.format(
+                           InventoryConstants.RELEASED_RESERVATION_CANNOT_BE_CONFIRMED,
+                           orderId,
+                           offerId
+                   )
+            );
+
+        }
+        if(inventoryReservation.getStatus() == ReservationStatus.EXPIRED){
+            throw  new ReservationExpiredException(
+                    String.format(
+                            InventoryConstants.EXPIRED_RESERVATION_CANNOT_BE_CONFIRMED,
+                            orderId,
+                            offerId
+                    )
+            );
+        }
+
+        LocalDateTime presentTime = LocalDateTime.now();
+
+        if(!inventoryReservation.getExpiresAt().isAfter(presentTime)){
+            throw  new ReservationExpiredException(
+                    String.format(
+                            InventoryConstants.EXPIRED_RESERVATION_CANNOT_BE_CONFIRMED,
+                            orderId,
+                            offerId
+                    )
+            );
+
+        }
+        int reservationQuantity =
+                inventoryReservation.getQuantity();
+
+        if (inventory.getReservedQuantity() < reservationQuantity
+                || inventory.getTotalQuantity() < reservationQuantity) {
+
+            throw new InventoryConsistencyException(
+                    String.format(
+                            InventoryConstants
+                                    .INCONSISTENT_CONFIRMATION_QUANTITY,
+                            offerId,
+                            inventory.getTotalQuantity(),
+                            inventory.getReservedQuantity(),
+                            reservationQuantity
+                    )
+            );
+        }
+
+        inventory.setReservedQuantity(inventory.getReservedQuantity() - reservationQuantity);
+
+        inventory.setTotalQuantity(inventory.getTotalQuantity() - reservationQuantity);
+
+        inventoryReservation.setStatus(ReservationStatus.CONFIRMED);
+
+        InventoryReservationResponse response= new InventoryReservationResponse(orderId,
+                offerId,
+                ReservationStatus.CONFIRMED
+                );
+
+        return response;
 
     }
 

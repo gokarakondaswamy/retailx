@@ -7,18 +7,15 @@ public class InventoryReservationResponse {
     private final Long orderId;
     private final Long offerId;
     private final ReservationStatus status;
-    private final String message;
 
     public InventoryReservationResponse(
             Long orderId,
             Long offerId,
-            ReservationStatus status,
-            String message) {
+            ReservationStatus status) {
 
         this.orderId = orderId;
         this.offerId = offerId;
         this.status = status;
-        this.message = message;
     }
 
     public Long getOrderId() {
@@ -33,7 +30,4 @@ public class InventoryReservationResponse {
         return status;
     }
 
-    public String getMessage() {
-        return message;
-    }
 }
